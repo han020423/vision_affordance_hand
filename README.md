@@ -85,6 +85,8 @@ pip install -r requirements-labeling.txt  # Grounding DINO + SAM2 반자동 라�
 RF-DETR은 별도 환경에 설치한다. 절차는
 [docs/rfdetr_experiment.md](docs/rfdetr_experiment.md)에 있다.
 
+테스트를 돌리려면 `pip install pytest` 후 `python -m pytest tests/`.
+
 ## 가중치와 평가 결과 받기
 
 저장소에는 코드만 있다. 가중치·평가 산출물·자체 데이터는
