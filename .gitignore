@@ -38,3 +38,4 @@ desktop.ini
 # 자체 데이터·라벨링 스냅샷 압축본 (재현 불가 자산, Release 또는 별도 전달)
 /custom_images_*.tar.gz
 /custom_labeling_*.tar.gz
+_release/
