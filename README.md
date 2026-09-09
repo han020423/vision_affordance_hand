@@ -21,11 +21,10 @@
 
 ## 먼저 읽을 것
 
-인수인계 문서는 셋이다. 순서대로 읽으면 30분 안에 첫 추론까지 간다.
 
 1. **이 README** — 설치와 첫 실행, 반드시 알아야 할 함정
 2. **[docs/EXPERIMENT_LINEAGE.md](docs/EXPERIMENT_LINEAGE.md)** — 실험 A~P 계보. 폐기한 시도와 그 이유
-3. **[docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)** — 이어서 할 일과 아직 검증되지 않은 부분
+3. 
 
 배경과 근거 전체는 [docs/FINAL_REPORT_20260824.md](docs/FINAL_REPORT_20260824.md)에 있다.
 수치의 원본은 [docs/model_metrics_summary.md](docs/model_metrics_summary.md)다.
