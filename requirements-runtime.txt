@@ -1,0 +1,7 @@
+# 실행(런타임) 의존성: 실시간 추론 + Brunel Hand 시리얼 제어
+# 학습 서버용은 requirements-server.txt, 데이터/라벨링은 requirements-data.txt 참고.
+#
+# 젯슨(~/hjh_vision_hand/.venv)에는 pyserial 3.5가 이미 설치되어 있어 추가 설치가 필요 없다.
+# 로컬 Windows에서 scripts/hand_cli.py 나 scripts/hand_serial_terminal.py 를 쓰려면
+#   pip install -r requirements-runtime.txt
+pyserial==3.5

@@ -1,0 +1,122 @@
+# Brunel Hand 액추에이터(PQ12-100-12-P ×4) 보정값·프리셋
+#
+# 이 파일이 보정값과 프리셋의 단일 진실이다. 펌웨어는 컴파일 기본값을 갖지만
+# 호스트가 연결 시 이 값을 SET CAL로 주입한다. 값은 사용자가 실측한 로그에서만
+# 가져오며, 추측으로 채우지 않는다. 실측 전 항목은 null로 둔다.
+#
+# 실측 근거 (1샘플 analogRead, 100 ms 펄스 스케치):
+#   outputs/hand_tests/serial_20260821_174804.log (검지 왕복 1회)
+#   outputs/hand_tests/serial_20260821_215011.log (네 손가락 왕복 1회)
+#   outputs/hand_tests/serial_20260821_211643.log (정지 잡음, 진단 스케치)
+# 분석: docs/hand_control_integration_plan.md 9절
+
+schema_version: 1
+
+# 육안 확인이 끝나지 않은 항목이 있으면 false. 로더는 false이면 구동을 거부한다.
+# 2026-08-21 21:51 사용자 확인: 네 손가락 모두 "펼침→접힘→펼침" 왕복 후 펼친 상태
+# (A0 3435, A1 3421, A2 3509, A3 336) → 검지·중지·약지·소지는 높은 ADC = 펼침, 엄지는 낮은 ADC = 펼침.
+calibration_confirmed: true
+
+serial:
+  port: COM10            # Windows 실측 포트. Jetson은 /dev/ttyACM0 등, CLI 인자가 우선
+  baud: 115200
+  heartbeat_ms: 300      # 이동 중 호스트가 PING을 보내는 간격
+
+adc:
+  resolution_bits: 12    # analogReadResolution(12) → 0~4095
+  average_samples: 8
+  # 정지 상태 8회 평균값의 20 s 범위: 28~58 count, 표준편차 5~10 (21:16~21:48 로그)
+  rest_noise_span_max: 58
+
+# 폐루프 공통 매개변수 (실측 속도·잡음에서 유도한 초기값)
+control:
+  deadband_adc: 20           # 2026-08-24 실측: 50→평균오차 45, 25→20, 12→7 (모두 진동 없음)
+  hold_brake: true           # 2026-08-24 실측: coast는 3초에 279 count 처짐, brake는 40
+  loop_period_ms: 5          # 이동 중 ADC 확인 주기. 속도 최대 4.8 count/ms → 주기당 약 24 count
+  stall_window_ms: 200       # 이 시간 동안
+  stall_min_delta_adc: 60    # 이만큼도 안 움직이면 스톨로 판단 (정상 이동 시 200 ms에 ≥ 300)
+  rest_after_move_ms: 500    # 도달 후 재구동 금지 시간 (PQ12 duty 20 % 보호)
+  soft_limit_margin_adc: 80  # 기계 한계에서 이만큼 안쪽을 소프트 한계로 둔다
+
+# 인덱스 순서 고정: 0 검지, 1 중지, 2 약지·소지, 3 엄지
+# adc_increase_direction: 펄스 스케치의 "방향 N"을 주면 ADC가 증가하는 N (실측)
+# adc_low_limit / adc_high_limit: 기계 한계에서 관측된 값 (끝 위치는 ±40 정도 흔들림)
+# extended_is_high: 펼친 상태가 높은 ADC인지 (2026-08-21 네 손가락 육안 확인). 엄지만 false
+# soft_low / soft_high: 제어에서 쓰는 안쪽 한계 (한계 ± margin, 제안값)
+# max_move_ms: 1회 이동 상한. 전 행정 실측 시간의 약 2배
+fingers:
+  - index: 0
+    name: index
+    adc_increase_direction: 1
+    adc_low_limit: 333        # 관측 333~380
+    adc_high_limit: 3457      # 관측 3409~3457
+    extended_is_high: true    # 방향 1 = 펼침 (2026-08-21 육안 확인)
+    soft_low: 450
+    soft_high: 3330
+    full_stroke_ms: { toward_low: 1000, toward_high: 1500 }
+    max_move_ms: 3000
+  - index: 1
+    name: middle
+    adc_increase_direction: 2   # 검지와 반대 (방향 1이 ADC 감소)
+    adc_low_limit: 432        # 마지막 펄스 −84라 조금 더 내려갈 수 있음
+    adc_high_limit: 3500      # 관측 3495~3500
+    extended_is_high: true    # 2026-08-21 육안 확인 (방향 2 = 펼침)
+    soft_low: 520
+    soft_high: 3400
+    full_stroke_ms: { toward_low: 1000, toward_high: 1400 }
+    max_move_ms: 3000
+  - index: 2
+    name: ring_little
+    adc_increase_direction: 1
+    adc_low_limit: 422        # 마지막 펄스 −88
+    adc_high_limit: 3550      # 관측 3509~3548
+    extended_is_high: true    # 2026-08-21 육안 확인 (방향 1 = 펼침)
+    soft_low: 520
+    soft_high: 3420
+    full_stroke_ms: { toward_low: 900, toward_high: 1300 }
+    max_move_ms: 3000
+  - index: 3
+    name: thumb
+    adc_increase_direction: 1
+    adc_low_limit: 309        # 관측 309~336
+    adc_high_limit: 3552
+    extended_is_high: false   # 2026-08-21 육안 확인: 펼친 상태가 336(낮은 쪽). 방향 2 = 펼침, 방향 1 = 접힘
+    soft_low: 420
+    soft_high: 3450
+    full_stroke_ms: { toward_low: 1600, toward_high: 2200 }   # 엄지는 다른 손가락보다 느림
+    max_move_ms: 3500
+
+# 프리셋: 손가락별 닫힘 비율 0.0(펼침)~1.0(접힘). 순서는 [검지, 중지, 약지·소지, 엄지].
+#
+# 2026-08-24 사용자 정의. 참여하는 손가락은 "최대로 접기"로 두고, 물체에 닿으면 펌웨어가
+# 스톨로 멈추게 한다(물체 크기별 목표 위치를 따로 정하지 않는 적응형 방식).
+# 근거: 같은 날 막힘 시험에서 저항을 만나면 목표까지 밀지 않고 정지하고 brake로 유지함을 확인.
+#
+#   PRECISION  엄지+검지+중지 집기      (펜, 숟가락 손잡이)
+#   WRAP       엄지 제외 전부 감기      (머그 손잡이 — 손잡이에 손가락을 걸고 당김)
+#   POWER      네 개 전부              (컵 몸통, 병 — 엄지가 반대쪽에서 받침)
+#
+# PRE_SHAPE는 파지 직전 미리 벌려두는 자세다. 우선 완전히 펼친 상태로 두고,
+# 실제 파지 시험에서 물체가 안 들어가면 값을 올린다.
+presets:
+  OPEN:      [0.0, 0.0, 0.0, 0.0]
+  PRECISION: [1.0, 1.0, 0.0, 1.0]
+  WRAP:      [1.0, 1.0, 1.0, 0.0]
+  POWER:     [1.0, 1.0, 1.0, 1.0]
+  PRE_SHAPE:
+    PRECISION: [0.0, 0.0, 0.0, 0.0]
+    WRAP:      [0.0, 0.0, 0.0, 0.0]
+    POWER:     [0.0, 0.0, 0.0, 0.0]
+
+# 파지 순서: 손가락 그룹을 순서대로 구동한다. 한 그룹의 이동이 끝나면 다음 그룹을 시작한다.
+# 각 프리셋의 순서는 네 손가락을 정확히 한 번씩 포함해야 한다(로더가 검사).
+#
+# 2026-08-24 실측 근거 (머그컵, 같은 위치에서 연속 비교):
+#   네 개 동시    → 검지·중지·약지·소지·엄지 모두 100 %까지 닫힘 (컵이 밀려나 헛닫힘)
+#   엄지 먼저     → 엄지 100 % 받침 후 세 손가락이 78~82 %에서 STALL (실제 파지)
+# 엄지가 받침이 되기 전에 손가락이 도착하면 물체가 경로에서 밀려나므로 순서가 필수다.
+preset_sequence:
+  OPEN:      [[0, 1, 2, 3]]     # 펼침은 동시에
+  PRECISION: [[2, 3], [0, 1]]   # 약지·소지 펼침 + 엄지 받침 먼저, 그다음 검지·중지로 집기
+  WRAP:      [[3], [0, 1, 2]]   # 엄지를 먼저 비켜두고, 세 손가락으로 감기
+  POWER:     [[3], [0, 1, 2]]   # 엄지 받침 먼저, 그다음 세 손가락으로 감싸기

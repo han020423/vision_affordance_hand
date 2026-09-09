@@ -1,0 +1,8 @@
+# Locked for the currently verified Windows preprocessing environment.
+# Jetson dependencies must be locked separately after JetPack is known.
+numpy==2.0.2
+Pillow==11.1.0
+PyYAML==6.0.2
+opencv-python==4.10.0.84
+scipy==1.16.0
+

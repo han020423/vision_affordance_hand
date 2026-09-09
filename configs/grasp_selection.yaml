@@ -1,0 +1,92 @@
+# 파지 후보 선택 설정
+#
+# 모든 가중치·임계값은 코드에 하드코딩하지 않고 이 파일에서 관리한다.
+# 값 조정은 validation 또는 실측 근거와 함께 기록한다.
+
+schema_version: 1
+
+# 후보 추출
+candidate:
+  min_confidence: 0.35        # 이 미만 검출은 후보로 만들지 않음
+  min_area_px: 400            # 너무 작은 조각 제외
+  boundary_margin_px: 4       # 프레임 경계에 닿은(잘린) 후보 표시 기준
+
+# 점수 가중치 (합 1.0). 초기값이며 validation 없이 확정하지 않는다.
+# 접근 방향 기반 선택이 목적이므로 상황 신호(거리·방향)에 무게를 둔다.
+weights:
+  confidence: 0.22            # C: 검출 신뢰도
+  distance: 0.30              # D: 손과의 거리 (최근접 대비 비율)
+  approach: 0.22              # A: 손 접근 방향과의 정렬
+  width_fit: 0.10             # F: 후보 폭의 파지 적합도 (캘리브레이션 전 중립)
+  functional_safety: 0.08     # M: 기능 영역과의 안전거리
+  human_prior: 0.08           # H: 인간 파지 빈도 (configs/human_grasp_prior.yaml)
+
+# 거리·방향 정규화
+normalization:
+  distance_max_px: 900        # 이 거리 이상이면 D=0
+  safety_radius_px: 60        # 기능 영역에서 이 거리 이상이면 M=1
+
+# 파지 자세 결정
+# 2026-08-24 EPIC-KITCHENS VISOR 868건 기하 분석(docs/grasp_pose_geometry_analysis.md)에 따라
+# 폭 임계값 대신 물체 구조 규칙을 쓴다:
+#   body → POWER / 손잡이가 body와 인접(용기의 부속 손잡이) → WRAP /
+#   그 외 물체 문맥(손잡이∪인접 기능영역) 종횡비 ≥ aspect_tool_min → PRECISION, 미만 → WRAP
+# 근거: 사람이 잡은 부위의 폭은 유형과 무관(손바닥 폭의 15~19%로 일정, 균형정확도 0.50),
+#       용기 손잡이 vs 도구 자루는 물체 종횡비 경계 2.12에서 균형정확도 0.936,
+#       부속성(잡은 부위 두께/물체 최대 두께) 경계 0.27에서 0.805.
+pose:
+  aspect_tool_min: 2.1        # VISOR 실측 경계 2.12의 반올림
+  body_adjacency_min_px: 20   # 손잡이-몸통 인접 판정 최소 겹침(팽창 반경은 후보 크기에 비례)
+  mm_per_px: null             # ArUco/손 폭 캘리브레이션 후 설정 (최대 개구 거부에만 사용)
+  precision_max_width_mm: 25  # (은퇴) 자세 결정에 더 이상 쓰지 않음 — VISOR 분석 결과 폭은 무근거
+  precision_max_width_px: 40  # (은퇴) 〃
+  power_min_width_mm: 55      # 참고용: body는 폭과 무관하게 POWER
+  max_grasp_width_mm: 120     # 2026-08-26 사용자 실측(펼침 상태 엄지 끝-검지 끝). 초과 후보 거부
+  max_grasp_width_px: 260
+  # 폭 적합도의 이상 폭 (최대 개구 대비 비율). 손잡이는 가늘수록,
+  # 몸통은 중간~넓은 폭이 자연스럽다는 가정의 초기값.
+  ideal_width_ratio:
+    handle_grasp_region: 0.25
+    body_grasp_region: 0.55
+
+# 로봇손 오검출 억제 (src/grasp_selection/hand_filter.py)
+# 근거: 고정 카메라·정지 물체 환경에서 움직이는 것은 로봇손뿐이므로, 몇 프레임 연속
+# 같은 자리에 있는 후보만 물체로 인정한다. 손 추적 박스가 유효한 프레임에는 박스 안에
+# 대부분 들어 있는 후보를 추가로 거부한다(접근 중 목표 보호를 위해 면적 비율 기준).
+suppression:
+  min_stable_frames: 3        # 이 프레임 수 이상 같은 자리에 있어야 채점 대상
+  match_radius_px: 60         # 같은 후보로 볼 파지점 이동 허용치
+  area_ratio_max: 2.5         # 같은 후보로 볼 면적 변화 허용 배율
+  hand_overlap_max: 0.5       # 후보 면적 중 손 박스 안 비율이 이 이상이면 거부
+  hand_box_margin: 0.15       # 손 박스 확장 비율
+  miss_ttl_frames: 10         # 이 프레임 수 동안 안 보이면 추적 폐기 (깜빡임 허용)
+  # 파지점 안정화 (2026-08-25 O 실물 시험: 손 접근·가림 시 파지점 소실·요동 → 보강).
+  # 정지 물체 가정에서, 가림으로 마스크가 잘리면 점을 새로 계산하지 않고 유지한다.
+  point_ema_alpha: 0.4        # 비가림 상태에서 새 파지점 관측의 EMA 가중치 (떨림 제거)
+  occlusion_hold_ratio: 0.7   # 면적이 비가림 추정치의 이 비율 미만이면 가림: 마지막 안정 파지점 유지
+  full_area_decay: 0.98       # 비가림 면적 추정치의 프레임당 감쇠 (크기 변화에 서서히 적응)
+  # 클래스 다수결 (2026-08-25: 종이컵이 handle↔body로 뒤집혀 트랙 리셋 → 파지점 소실).
+  # 트랙 매칭은 클래스 무관으로 하고, 최근 관측 창의 다수결로 클래스를 확정한다.
+  class_vote_window: 7        # 다수결에 쓰는 최근 관측 수
+  class_switch_min: 5         # 창 안에서 이 횟수 이상 관측된 클래스로만 전환 (교대 뒤집힘 무시)
+  # 유령 후보 (2026-08-26: 최종 접근에서 후보가 통째로 사라져 파지점 소실 → 마지막
+  # 검증 스냅샷을 대신 유지). 손 박스가 트랙을 덮고 있는 동안은 TTL을 세지 않으므로
+  # 호버·정렬이 길어져도 유지된다. 손이 떠난 뒤 TTL이 지나면 자연 소멸한다.
+  ghost_ttl_frames: 20        # 손이 떠난 뒤 유지 프레임 (~2.4초@8.5fps; 덮는 동안은 동결)
+  ghost_hard_cap_frames: 200  # 안전 상한 (~23초) — 물체가 실제 치워진 경우의 잔상 방지
+  ghost_replace_overlap: 0.3  # 스냅샷 자리를 '다른' 안정 후보가 이 비율 이상 덮으면 즉시 폐기
+                              # (물체 교체 시 옛 유령 잔상 방지, 2026-08-26)
+
+# 상태 결정
+decision:
+  min_score: 0.45             # 최고 점수가 이 미만이면 ALIGN
+  score_margin: 0.08          # 1·2위 점수 차가 이 미만이면 ALIGN
+  functional_hard_floor_px: 12  # 파지점이 기능 영역과 이 거리 이내면 후보 거부
+  # (부위 결정 시험판 전용) 유령 후보 점수 할인 — 실측 후보가 있으면 즉시 양보,
+  # 혼자일 때만 유지 목적 수행 (목표 전환 반응성 확보, 2026-08-26)
+  ghost_score_factor: 0.85
+  # 인접 부위 타이브레이크: 1·2위가 같은 물체의 손잡이-몸통이면 점수·margin 대신
+  # 손-파지점 거리가 가까운 쪽을 승자로 확정한다. 인접 부위 사이에서는 거리·방향
+  # 항이 포화되어 점수가 검출 신뢰도 잡음으로 갈리기 때문 (2026-08-25 파란 머그
+  # POWER/WRAP 요동 분석). min_score 안전장치는 유지된다.
+  adjacent_tiebreak: true

@@ -1,0 +1,40 @@
+# 데이터셋 (약 53GB). 공개 원본은 scripts/의 내려받기·변환 스크립트로 재구성한다.
+# 자체 촬영 원본과 사람 승인 마스크는 별도 전달한다(재현 불가 자산).
+/data/
+
+# 학습·평가 산출물 (약 1.7GB). 가중치와 평가 결과는 GitHub Release로 배포한다.
+/outputs/
+
+# 모델 가중치 (약 56MB). Release 첨부로 배포한다.
+/models/
+
+# 발표 자료·영상 등 대용량 산출물 (약 201MB)
+/artifacts/
+
+# Ultralytics 설정 (빈 api_key 필드 포함, 머신 종속)
+/.ultralytics/
+
+# 파이썬
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# 편집기·OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 로컬 임시
+*.log
+*.tmp
+*.bak
+*.bak_*
+
+# 자체 데이터·라벨링 스냅샷 압축본 (재현 불가 자산, Release 또는 별도 전달)
+/custom_images_*.tar.gz
+/custom_labeling_*.tar.gz

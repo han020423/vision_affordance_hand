@@ -1,0 +1,18 @@
+# Arduino Nano 33 IoT (Brunel Hand 제어 보드) — Jetson용 udev 규칙
+#
+# 목적
+#  1) ModemManager가 이 장치를 모뎀으로 오인해 AT 명령을 밀어 넣는 것을 막는다.
+#     (젯슨에서 ModemManager가 active이므로 필요하다)
+#  2) 포트 번호가 바뀌어도 쓸 수 있는 고정 이름 /dev/brunel_hand 을 만든다.
+#
+# 설치 (Jetson에서, sudo 암호 필요)
+#   sudo cp ~/hjh_vision_hand/configs/hardware/99-brunel-hand.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# 확인: 보드를 USB로 연결한 뒤
+#   ls -l /dev/brunel_hand
+#
+# VID/PID 출처: Arduino SAMD 코어의 nano_33_iot 빌드 정의(USB_VID=0x2341, USB_PID=0x8057).
+# 부트로더 모드에서는 PID가 달라지므로(업로드 중) 규칙이 적용되지 않는 것이 정상이다.
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="8057", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", SYMLINK+="brunel_hand", MODE="0660", GROUP="dialout"

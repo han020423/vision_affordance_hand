@@ -1,0 +1,25 @@
+# 반자동 결과는 정답 마스크와 분리하며, 사람이 검수하기 전에는 학습에 사용하지 않는다.
+manifest_path: data/interim/custom.jsonl
+output_root: data/interim/custom_pseudolabels
+
+models:
+  grounding_dino: IDEA-Research/grounding-dino-tiny
+  sam2: facebook/sam2.1-hiera-small
+
+# Grounding DINO는 영문 명사구에서 안정적이므로 모델 입력만 영문을 유지한다.
+prompts:
+  whole: a mug
+
+thresholds:
+  box: 0.25
+  text: 0.20
+  minimum_mask_pixels: 64
+
+policy:
+  classes:
+    0: grasp_region
+    1: functional_region
+  ignore_index: 255
+  mug_body_is_not_functional_region: true
+  separate_grasp_components: true
+  require_human_review: true

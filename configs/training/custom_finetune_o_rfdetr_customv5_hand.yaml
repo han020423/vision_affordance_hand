@@ -1,0 +1,26 @@
+schema_version: 1
+experiment:
+  id: custom_finetune_o_rfdetr_customv5_hand_seed42
+  stage: custom_data_finetuning
+  description: 실험 O - v4 결함 수정 + Copy-Paste 손-물체 겹침 합성(v5)으로 미세조정
+  dataset_version: data/processed/rfdetr_mixed_grasp_type_customv5/rfdetr_export_manifest.json
+  comparison_group: grasp_type_lineage_detr
+  comparison_note: >
+    실험 N(v4)은 검증 지표는 좋았으나 실전에서 손-물체 상호작용 시 인식이 붕괴했다.
+    v5는 (1) handle 라벨이 누락된 머그 동반 프레임 20장을 제거하고(거짓 음성 차단),
+    (2) 승인된 손 조각을 라벨 완비 물체 이미지에 붙인 Copy-Paste 합성(train 2,200,
+    valid 120; Ghiasi et al. 2021)으로 가림·문맥 다양성을 보충했으며, (3) valid에
+    합성 상호작용 프레임을 포함해 지표가 배포 상황을 대변하게 했다. 모델·하이퍼파라미터는
+    M/N과 동일. N 대비 차이는 데이터 품질·구성뿐이다.
+
+training:
+  variant: RFDETRSegNano
+  dataset_dir: data/processed/rfdetr_mixed_grasp_type_customv5
+  output_dir: outputs/training/custom_finetune_o_rfdetr_customv5_hand_seed42
+  seed: 42
+  train_args:
+    epochs: 50
+    batch_size: 8
+    grad_accum_steps: 2
+    lr: 0.0001
+    early_stopping: true

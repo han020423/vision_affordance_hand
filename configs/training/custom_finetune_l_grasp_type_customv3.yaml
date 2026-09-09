@@ -1,0 +1,56 @@
+schema_version: 1
+experiment:
+  id: custom_finetune_l_grasp_type_customv3_seed42
+  stage: custom_data_finetuning
+  description: 실험 L - 공개 v2 사전학습 YOLO11s를 자체 v3(가위·드라이버 추가)+공개 replay 혼합으로 미세조정
+  dataset_version: data/processed/yolo_mixed_grasp_type_customv3/mixed_manifest.json
+  comparison_group: grasp_type_lineage
+  comparison_note: >
+    실험 H와 초기 가중치·하이퍼파라미터가 같고 자체 데이터만 v2(머그 140)→v3(292,
+    가위 42·드라이버 39·mug_04 test 51 추가)로 바뀐다. H 대비 차이는 신규 카테고리
+    학습 효과이며, mug_04 test 평가는 학습에 쓰지 않는 test 분할로 수행한다.
+
+training:
+  model: outputs/training/public_pretrain_grasp_type_s_v2_seed42/weights/best.pt
+  data: data/processed/yolo_mixed_grasp_type_customv3/dataset.yaml
+  epochs: 100
+  imgsz: 640
+  batch: -1
+  device: 0
+  workers: 8
+  optimizer: AdamW
+  lr0: 0.0003
+  lrf: 0.01
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  cos_lr: true
+  patience: 25
+  amp: true
+  cache: false
+  seed: 42
+  deterministic: true
+  val: true
+  plots: true
+  save: true
+  save_period: 10
+  project: outputs/training
+  name: custom_finetune_l_grasp_type_customv3_seed42
+  exist_ok: false
+
+  # H와 동일한 중간 강도 증강을 유지해 자체 데이터 확장 효과만 비교한다.
+  hsv_h: 0.015
+  hsv_s: 0.5
+  hsv_v: 0.3
+  degrees: 10.0
+  translate: 0.1
+  scale: 0.4
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 0.5
+  close_mosaic: 10
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.1
+  erasing: 0.0

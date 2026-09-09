@@ -1,0 +1,28 @@
+schema_version: 1
+experiment:
+  id: custom_finetune_k_rfdetr_seg_seed42
+  stage: custom_data_finetuning
+  description: 실험 K - RF-DETR-Seg(DINOv2 백본, COCO 사전학습)를 자체+공개 v2 replay 혼합으로 미세조정해 YOLO 계열(실험 H)과 비교
+  rename_note: 2026-08-21에 실험 J에서 K로 개명(YOLO v4 미세조정 실험 J와 이름 충돌). 완료된 실행 폴더 내부의 launch_metadata에는 이전 id가 남아 있다.
+  dataset_version: data/processed/rfdetr_mixed_grasp_type_v2/rfdetr_export_manifest.json
+  comparison_group: grasp_type_lineage_detr
+  comparison_note: >
+    실험 H(YOLO11s-seg, 공개 v2 사전학습→혼합 미세조정)와 같은 원본 데이터(공개 v2 + 자체 v2,
+    자체 10배 반복, val 병합)를 사용한다. 단 초기 가중치는 H의 자체 공개 사전학습이 아니라
+    RF-DETR 공식 COCO(DINOv2 백본) 사전학습이며, 입력 해상도도 모델 기본값(Nano 312)이라
+    "파이프라인 대 파이프라인" 비교이지 통제된 단일 변수 비교가 아니다.
+
+training:
+  # RF-DETR 모델 변형: RFDETRSegNano | RFDETRSegSmall | RFDETRSegMedium ...
+  # 오린 나노 배포 후보인 Nano를 1차로 학습하고, 필요 시 Small로 공정성 후속 실험을 한다.
+  variant: RFDETRSegNano
+  dataset_dir: data/processed/rfdetr_mixed_grasp_type_v2
+  output_dir: outputs/training/custom_finetune_k_rfdetr_seg_seed42
+  seed: 42
+  # 아래 항목은 rfdetr의 train() 인자로 그대로 전달된다.
+  train_args:
+    epochs: 50
+    batch_size: 8
+    grad_accum_steps: 2
+    lr: 0.0001
+    early_stopping: true

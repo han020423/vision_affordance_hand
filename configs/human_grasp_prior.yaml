@@ -1,0 +1,32 @@
+# 인간 파지 행동 사전확률 (후보 선택 점수식의 prior 항)
+#
+# 출처: EPIC-KITCHENS VISOR sparse 주석의 손-물체 접촉 이벤트에서
+# 층화 추출한 868장면을 사람이 직접 판정 (2026-08-20, 판정자 1인).
+# 유효 표본은 관심 물체(1층) 13종 544건이며, '파지 아님' 판정은 제외했다.
+# 재현 정보: scripts/visor_select_samples.py (seed 42),
+#            scripts/visor_judge_grasp.py,
+#            outputs/visor_judgment/stats_summary.json
+#
+# 주의:
+# - prior는 물체 이름이 아니라 모델 3클래스 기준이다 (물체 인식 불필요).
+# - rim_pinch(테두리·꼭지 집기)는 집기 계열이므로 handle 쪽에 흡수했다.
+# - 이 값은 "동점일 때 인간 행동 쪽으로 기우는" 보조 신호다. 가중치(w_H)는
+#   접근 방향 등 상황 신호를 덮지 않도록 작게 유지하고, validation 없이
+#   키우지 않는다.
+
+schema_version: 1
+source:
+  dataset: "EPIC-KITCHENS VISOR (sparse, train+val)"
+  judged_scenes: 868
+  valid_tier1_samples: 544
+  judged_at: "2026-08-20"
+  method: "사람 판정(5분류) 후 3클래스로 축약"
+
+# 모델 클래스별 인간 파지 빈도 (1층 관심 물체 합산, 정규화)
+class_prior:
+  handle_grasp_region: 0.7629   # 손잡이 파지 386 + 테두리 집기 29
+  body_grasp_region: 0.2279     # 몸통 파지 124
+  functional_region: 0.0092     # 기능부 접촉 5 (회피 정책과 일관)
+
+# 점수식 통합 시 초기 가중치 (validation으로 조정 전까지 유지)
+score_weight_initial: 0.08

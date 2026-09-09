@@ -1,0 +1,51 @@
+version: 1
+
+unified_labels:
+  classes:
+    0: grasp_region
+    1: functional_region
+  ignore_index: 255
+  semantic_png_storage:
+    0: background
+    1: grasp_region
+    2: functional_region
+    255: ignore
+
+datasets:
+  affgrasp:
+    root: data/raw/affgrasp/Data_for_Aff-Grasp
+    training_subdir: ego_train
+    evaluation_subdir: Affordance_Evaluation_Dataset
+    evaluation_usage: external_evaluation_only
+    source_revision: fcc0faac67bdd0126ebde263e6b07f114c2f599c
+    label_mapping:
+      graspable: grasp_region
+      functional: functional_region
+
+  umd:
+    root: data/raw/umd
+    tools_subdir: tools
+    use_ranked_labels: false
+    use_automatic_labels: false
+    manual_gt_selection: mat_field_gt_type_equals_manual
+    split_unit: object_id
+    subsampling:
+      method: proportional_per_object_temporal_spacing
+      target_manual_frames: 4000
+      random_seed: null
+    label_mapping:
+      1: grasp_region
+      2: functional_region
+      3: functional_region
+      4: ignore
+      5: functional_region
+      6: functional_region
+      7: grasp_region
+    label_names:
+      1: grasp
+      2: cut
+      3: scoop
+      4: contain
+      5: pound
+      6: support
+      7: wrap-grasp

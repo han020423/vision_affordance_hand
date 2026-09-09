@@ -1,0 +1,50 @@
+# 로봇손(Brunel Hand) 비전 추적 설정
+#
+# ArUco 마커 대신 손 자체를 검출해 위치·접근 방향·스케일을 얻는다.
+# 1단계: YOLO-World 제로샷("robot hand" 프롬프트) — 학습 없이 즉시 사용
+# 2단계: 촬영한 손 영상으로 학습한 전용 검출기(backend: custom)로 교체 예정
+
+backend: motion                # motion(배경 차분, 기본) | yolo_world(라벨링 보조) | custom(전용 검출기)
+weights: models/pretrained/yolov8s-worldv2.pt
+prompts: ["robot hand", "robotic hand", "prosthetic hand"]
+custom_weights: null           # 2단계 전용 검출기 가중치 경로 (학습 후 기입)
+conf_threshold: 0.20
+imgsz: 640
+device: cpu
+
+# 매 프레임 검출은 CPU에서 느리므로 N프레임마다 검출하고 그 사이는 마지막 위치를 유지한다.
+detect_every: 1
+# 검출이 이 프레임 수 이상 끊기면 손 상태를 무효화한다 (오래된 위치로 결정하지 않음).
+# 2026-08-26: 최종 접근·접촉 구간에서 손 검출이 잠깐 끊겨도 선택 루프(파지점 유지)가
+# 계속 돌도록 15→30(~3.5초)으로 완화. 유령 후보와 함께 파지점 소실을 막는다.
+max_missing_frames: 30
+# 최소 박스 크기(px) — 너무 작은 오검출 무시
+min_box_px: 40
+
+# 접근 방향 = 손 위치 변화의 지수이동평균. 속도가 작으면 방향 없음(중립)으로 둔다.
+direction_ema_alpha: 0.3
+min_speed_px: 4.0
+
+# 손의 실제 폭(mm). 값이 있으면 화면 폭 대비로 mm_per_px를 추정해
+# 후보 폭 기준(최대 개구 거부 등)을 mm로 전환한다. ArUco 캘리브레이션 대체.
+# 2026-08-25 사용자 실측: 펼친 상태 가로 120mm, 세로 180mm.
+# 추정에는 검출 박스의 "짧은 변"을 가로 폭(120mm)에 대응시킨다(회전에 덜 민감).
+hand_width_mm: 120
+# mm/px 기준 손 폭은 순간값이 아니라 "천천히 감쇠하는 최댓값"을 쓴다.
+# 부분 검출·화면 가장자리 잘림은 박스를 작게만 만들어 mm/px를 부풀리고,
+# 그 결과 폭 필터가 정상 몸통 후보를 거부(POWER 불발)했기 때문 (2026-08-25 O 시험).
+width_px_decay: 0.995
+
+# motion 백엔드(배경 차분 + 프레임 간 차분 게이팅) 파라미터
+# 영상 WIN_20260821_15_37_07 (검은 의수·검은 책상)로 조정한 초기값
+motion_history: 300
+motion_var_threshold: 25        # 낮을수록 민감 (어두운 손 대 어두운 배경)
+motion_learning_rate: 0.01      # 잔상(ghost) 제거 속도
+motion_min_area_px: 8000
+motion_blur: 5
+motion_morph_kernel: 9
+motion_position_mode: leading   # 이동 방향 선단(손끝 쪽)을 손 위치로
+motion_warmup_frames: 30
+motion_use_framediff: true
+motion_framediff_threshold: 12
+motion_framediff_dilate: 25

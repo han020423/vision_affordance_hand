@@ -1,0 +1,35 @@
+# 실시간 affordance 분할 카메라 설정
+#
+# 카메라 장치 번호와 해상도는 환경마다 다르므로 코드에 고정하지 않고
+# 이 파일 또는 scripts/run_realtime_seg.py의 CLI 인자로 조정한다.
+# CLI 인자가 이 파일 값보다 우선한다.
+
+camera:
+  # Windows 기본 웹캠은 보통 0번이다. 외부 USB 카메라는 1 이상일 수 있다.
+  index: 0
+  width: 1280
+  height: 720
+  # 연속 프레임 읽기 실패가 이 횟수를 넘으면 카메라 끊김으로 판단하고 안전 종료한다.
+  max_consecutive_failures: 30
+
+inference:
+  imgsz: 640
+  # 배포 모델 M(RF-DETR-Seg Nano, custom_finetune_m_rfdetr_customv3_seed42) 기준
+  # 실측으로 정한 값이다. 2026-08-24 conf 0.15/0.25/0.50 스윕 결과
+  # (docs/rfdetr_experiment.md) 0.15가 모든 지표에서 최선이었다.
+  # 0.50에서는 공개 손잡이 검출 전무 169건, 머그 몸통 전무 15건으로 무너진다.
+  # 다른 모델로 바꾸면 이 값을 다시 스윕해야 한다. K는 같은 조정에 반응하지 않았다.
+  conf_threshold: 0.15
+  # 로컬 Windows는 CUDA가 없으므로 CPU를 기본으로 한다. Jetson에서는 cuda:0 등으로 변경한다.
+  device: cpu
+
+display:
+  window_name: "affordance realtime"
+  # 마스크 채색 투명도(0=원본만, 1=마스크만)
+  overlay_alpha: 0.45
+
+save:
+  # 스냅숏('s' 키)과 녹화 파일이 저장되는 폴더
+  output_dir: outputs/realtime_test
+  # true면 시작부터 종료까지 overlay 영상을 녹화한다.
+  record_video: false

@@ -1,0 +1,29 @@
+schema_version: 1
+experiment:
+  id: custom_finetune_p_rfdetr_customv6_hand_seed42
+  stage: custom_data_finetuning
+  description: 실험 P - 2026-08-25 신규 촬영(접근 자세 손·원통·검정 물체)을 반영한 v6 미세조정
+  dataset_version: data/processed/rfdetr_mixed_grasp_type_customv6/rfdetr_export_manifest.json
+  comparison_group: grasp_type_lineage_detr
+  comparison_note: >
+    실험 O(v5)는 파란 머그 상호작용은 복구했으나 실물에서 세 가지 한계를 보였다:
+    (1) 실제 파지 접근 자세(측면·손등·굽힘)의 robot_hand 미검출, (2) 원통 물체
+    (캔·물병·컵)를 handle로 오인(공공 데이터 지식 희석), (3) 검정 물체를
+    robot_hand로 오인. v6는 신규 촬영 4종의 사람 검수 승인 라벨로 이를 겨냥한다:
+    접근 자세 손 112장(train), 원통 286장(전부 body), 검정 머그·텀블러 80장
+    (robot_hand 네거티브 겸용), 실사 상호작용 프레임(valid). Copy-Paste 합성은
+    구 합성을 승계하지 않고 전체 손 조각 풀(구 155 + 신 217)로 재생성해 개방
+    손바닥 편중을 제거했고, 원통·검정 프레임도 합성 바탕에 포함했다.
+    모델·하이퍼파라미터는 M/N/O와 동일. 차이는 데이터 구성뿐이다.
+
+training:
+  variant: RFDETRSegNano
+  dataset_dir: data/processed/rfdetr_mixed_grasp_type_customv6
+  output_dir: outputs/training/custom_finetune_p_rfdetr_customv6_hand_seed42
+  seed: 42
+  train_args:
+    epochs: 50
+    batch_size: 8
+    grad_accum_steps: 2
+    lr: 0.0001
+    early_stopping: true

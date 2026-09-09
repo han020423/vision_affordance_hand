@@ -1,0 +1,51 @@
+schema_version: 1
+experiment:
+  id: custom_finetune_a_coco_seed42
+  stage: custom_data_finetuning
+  description: 실험 A - COCO 사전학습 YOLO11n-seg를 자체 머그 데이터로 미세조정
+  dataset_version: data/processed/yolo_custom_approved_v1/dataset_version.json
+  comparison_group: custom_finetune_a_vs_d
+
+training:
+  model: models/pretrained/yolo11n-seg.pt
+  data: data/processed/yolo_custom_approved_v1/dataset.yaml
+  epochs: 100
+  imgsz: 640
+  batch: -1
+  device: 0
+  workers: 8
+  optimizer: AdamW
+  lr0: 0.0003
+  lrf: 0.01
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  cos_lr: true
+  patience: 25
+  amp: true
+  cache: false
+  seed: 42
+  deterministic: true
+  val: true
+  plots: true
+  save: true
+  save_period: 10
+  project: outputs/training
+  name: custom_finetune_a_coco_seed42
+  exist_ok: false
+
+  # A와 D는 초기 가중치만 다르게 하고 데이터·증강·seed를 동일하게 유지한다.
+  hsv_h: 0.015
+  hsv_s: 0.5
+  hsv_v: 0.3
+  degrees: 10.0
+  translate: 0.1
+  scale: 0.3
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 0.0
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.0
+  erasing: 0.0

@@ -1,0 +1,54 @@
+﻿schema_version: 1
+experiment:
+  id: public_pretrain_grasp_type_s_v4_seed42
+  stage: public_pretraining
+  description: 파지 종류 3클래스 공개 사전학습 v2 - Aff-Grasp + UMD 8k + IIT-AFF + 절개선 + UMD mug/cup train 제외(라벨 충돌 실험), YOLO11s-seg, 강화 증강
+  dataset_version: data/processed/yolo_grasp_type_public_v4/dataset_version.json
+  comparison_group: grasp_type_lineage
+
+training:
+  model: models/pretrained/yolo11s-seg.pt
+  data: data/processed/yolo_grasp_type_public_v4/dataset.yaml
+  epochs: 120
+  imgsz: 640
+  batch: -1
+  device: 0
+  workers: 8
+  optimizer: AdamW
+  lr0: 0.001
+  lrf: 0.01
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  cos_lr: true
+  patience: 25
+  amp: true
+  cache: false
+  seed: 42
+  deterministic: true
+  val: true
+  plots: true
+  save: true
+  save_period: 10
+  project: outputs/training
+  name: public_pretrain_grasp_type_s_v4_seed42
+  exist_ok: false
+
+  # v1과 동일한 강화 증강. 데이터만 IIT-AFF가 추가되어 v1과 IIT 효과를 비교한다.
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 10.0
+  translate: 0.1
+  scale: 0.5
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 1.0
+  close_mosaic: 10
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.15
+  erasing: 0.0
+
+

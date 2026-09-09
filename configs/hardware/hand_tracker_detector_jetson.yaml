@@ -1,0 +1,20 @@
+# 분리형 손 전용 검출기 설정 — 젯슨 배포용 (hand_tracker_detector.yaml의 GPU 변형)
+#
+# 로컬(CPU) 파일과 차이는 device와 detect_every뿐이다.
+# 검출기(YOLO11n)는 GPU에서 프레임당 수 ms라 매 프레임 검출한다.
+
+backend: custom
+custom_weights: models/hand_detector/hand_detector_v1_best.pt
+conf_threshold: 0.40
+imgsz: 640
+device: cuda:0
+
+detect_every: 1
+max_missing_frames: 15
+min_box_px: 40
+
+direction_ema_alpha: 0.3
+min_speed_px: 4.0
+
+# 사용자 실측(2026-08-25): 펼친 손 가로 120mm
+hand_width_mm: 120

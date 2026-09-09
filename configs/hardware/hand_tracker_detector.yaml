@@ -1,0 +1,23 @@
+# 분리형 손 전용 검출기(2단계) 설정 — backend: custom
+#
+# 실험 N(분할 모델에 robot_hand 통합)의 실전 실패 이후 채택한 방법 ③.
+# 물체 모델(M)은 불변이고, 이 1클래스 YOLO11n 검출기가 손 박스만 담당한다.
+# 손 박스는 ① 후보 억제 필터(suppression) ② 손 위치·접근 방향 ③ mm/px 추정에 쓰인다.
+# 기본 motion 설정(hand_tracker.yaml)은 그대로 두고, 이 파일을
+# --hand-tracker-config로 지정해 전환한다.
+
+backend: custom
+custom_weights: models/hand_detector/hand_detector_v1_best.pt
+conf_threshold: 0.40           # valid 오검출 분석 후 조정
+imgsz: 640
+device: cpu                    # 젯슨에서는 cuda:0 (RF-DETR와 별도 프로세스 아님, 같은 GPU 공유)
+
+detect_every: 3                # nano 검출은 가볍지만 CPU에서는 간격을 둔다. 젯슨 GPU면 1로.
+max_missing_frames: 15
+min_box_px: 40
+
+direction_ema_alpha: 0.3
+min_speed_px: 4.0
+
+# 사용자 실측(2026-08-25): 펼친 손 가로 120mm. 박스 폭 대비로 mm/px를 추정한다.
+hand_width_mm: 120

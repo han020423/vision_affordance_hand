@@ -1,0 +1,50 @@
+# 2026-08-21 추가 촬영(mug_04, scissors_01, screwdriver_01)용 반자동 후보 설정.
+# 반자동 결과는 정답 마스크와 분리하며, 사람이 검수하기 전에는 학습에 사용하지 않는다.
+manifest_path: data/interim/custom_v2.jsonl
+output_root: data/interim/custom_pseudolabels_v2
+
+models:
+  grounding_dino: IDEA-Research/grounding-dino-tiny
+  sam2: facebook/sam2.1-hiera-small
+
+# 카테고리별 부위 정책(사용자 승인 2026-08-21):
+# - mug: 기존 머그 경로(전체 탐지 후 기하 분리, functional 없음)
+# - scissors: 손잡이 고리 최대 2개=grasp(별도 인스턴스), 날(잔여)=functional
+# - screwdriver: 손잡이=grasp, 축+팁(잔여)=functional
+# Grounding DINO는 영문 명사구에서 안정적이므로 모델 입력만 영문을 유지한다.
+categories:
+  mug:
+    method: whole_geometric_mug
+    whole_prompt: a mug
+  # 부위 프롬프트(anchor_residual)는 DINO가 전체 물체를 반환해 실패했다(2026-08-21).
+  # 대신 머그처럼 기하학적 분리를 사용한다: 가위=고리 구멍, 드라이버=폭 프로파일.
+  scissors:
+    method: scissors_holes
+    whole_prompt: scissors
+    anchor_part: handle
+    residual_part: blade
+    residual_label: functional_region
+  screwdriver:
+    method: screwdriver_width
+    whole_prompt: a screwdriver
+    anchor_part: handle
+    residual_part: shaft
+    residual_label: functional_region
+
+thresholds:
+  box: 0.25
+  text: 0.20
+  minimum_mask_pixels: 64
+
+policy:
+  classes:
+    0: grasp_region
+    1: functional_region
+  ignore_index: 255
+  mug_body_is_not_functional_region: true
+  separate_grasp_components: true
+  require_human_review: true
+  # functional 잔여 부위 생성이 승인된 카테고리 목록
+  functional_allowed_categories:
+    - scissors
+    - screwdriver

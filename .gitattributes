@@ -1,0 +1,11 @@
+# 줄바꿈은 저장소에서 LF로 통일한다 (Windows·Linux·Jetson을 함께 쓴다).
+* text=auto eol=lf
+
+# 배치 파일은 Windows에서 실행하므로 CRLF를 유지한다.
+*.bat text eol=crlf
+
+# 이진 파일
+*.jpg binary
+*.png binary
+*.pt  binary
+*.pth binary

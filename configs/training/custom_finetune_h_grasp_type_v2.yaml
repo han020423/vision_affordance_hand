@@ -1,0 +1,53 @@
+schema_version: 1
+experiment:
+  id: custom_finetune_h_grasp_type_v2_seed42
+  stage: custom_data_finetuning
+  description: 실험 H - IIT-AFF 포함 3클래스 사전학습 v2를 자체+공개 replay 혼합으로 미세조정
+  dataset_version: data/processed/yolo_mixed_grasp_type_v2/mixed_manifest.json
+  comparison_group: grasp_type_lineage
+  source_pretraining: public_pretrain_grasp_type_s_v2_seed42
+
+training:
+  model: outputs/training/public_pretrain_grasp_type_s_v2_seed42/weights/best.pt
+  data: data/processed/yolo_mixed_grasp_type_v2/dataset.yaml
+  epochs: 100
+  imgsz: 640
+  batch: -1
+  device: 0
+  workers: 8
+  optimizer: AdamW
+  lr0: 0.0003
+  lrf: 0.01
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  cos_lr: true
+  patience: 25
+  amp: true
+  cache: false
+  seed: 42
+  deterministic: true
+  val: true
+  plots: true
+  save: true
+  save_period: 10
+  project: outputs/training
+  name: custom_finetune_h_grasp_type_v2_seed42
+  exist_ok: false
+
+  # G와 동일한 중간 강도 증강을 유지해 IIT 추가 효과만 비교한다.
+  hsv_h: 0.015
+  hsv_s: 0.5
+  hsv_v: 0.3
+  degrees: 10.0
+  translate: 0.1
+  scale: 0.4
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 0.5
+  close_mosaic: 10
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.1
+  erasing: 0.0

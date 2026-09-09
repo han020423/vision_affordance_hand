@@ -1,0 +1,145 @@
+# 자체 촬영 원본은 수정하지 않고 아래 촬영 구간으로만 물체 ID를 배정한다.
+schema_version: 1
+raw_image_root: data/raw/custom/images
+# 2026-08-21: mug_04·가위·드라이버 추가로 v2 준비본을 새로 만든다.
+# v1(custom_labeling, custom.jsonl)은 승인본 v1의 이력으로 보존하고 수정하지 않는다.
+labeling_output_root: data/interim/custom_labeling_v2
+manifest_path: data/interim/custom_v2.jsonl
+strict_unassigned: true
+
+classes:
+  0: grasp_region
+  1: functional_region
+ignore_index: 255
+
+# 네 번째 실제 컵을 추가할 때 Test로 배정한다. 현재는 없는 데이터를 만들지 않는다.
+reserved_test_object_id: mug_04
+
+captures:
+  - capture_id: mug_01_white
+    object_id: mug_01
+    category: mug
+    split: train
+    scene: white_booth
+    start: "2026-08-14T16:48:10"
+    end: "2026-08-14T16:49:35"
+    expected_count: 21
+
+  - capture_id: mug_02_white
+    object_id: mug_02
+    category: mug
+    split: train
+    scene: white_booth
+    start: "2026-08-14T16:49:46"
+    end: "2026-08-14T16:50:44"
+    expected_count: 24
+
+  - capture_id: mug_03_white
+    object_id: mug_03
+    category: insulated_mug
+    split: validation
+    scene: white_booth
+    start: "2026-08-14T17:36:47"
+    end: "2026-08-14T17:37:44"
+    expected_count: 22
+
+  - capture_id: mug_02_desk
+    object_id: mug_02
+    category: mug
+    split: train
+    scene: office_desk
+    start: "2026-08-14T17:38:17"
+    end: "2026-08-14T17:39:03"
+    expected_count: 23
+
+  - capture_id: mug_01_desk
+    object_id: mug_01
+    category: mug
+    split: train
+    scene: office_desk
+    start: "2026-08-14T17:39:10"
+    end: "2026-08-14T17:39:50"
+    expected_count: 22
+
+  - capture_id: mug_03_desk
+    object_id: mug_03
+    category: insulated_mug
+    split: validation
+    scene: office_desk
+    start: "2026-08-14T17:39:55"
+    end: "2026-08-14T17:40:42"
+    expected_count: 28
+
+  - capture_id: background_train
+    object_id: background_negative
+    category: background
+    split: train
+    scene: office_desk_and_white_booth
+    start: "2026-08-14T17:47:20"
+    end: "2026-08-14T17:48:02"
+    expected_count: 20
+    is_negative: true
+
+  # ---- 2026-08-21 추가 촬영 ----
+  # mug_04: 예약된 unseen-instance test.
+  # 가위/드라이버: 인식 개선 목적으로 학습(train)에 투입한다(사용자 승인 2026-08-21).
+  #   실물이 각 1개뿐이라 이 물체들로는 미학습 인스턴스 평가를 할 수 없다는 제약을
+  #   기록으로 남긴다. 부위 정책(사용자 승인 2026-08-21):
+  #   - scissors: 손잡이 고리 2개=handle_grasp(별도 인스턴스), 날=functional
+  #   - screwdriver: 손잡이=handle_grasp, 축+팁=functional
+  #   - mug_04: 기존 머그 정책(handle/body grasp, functional 없음)
+
+  - capture_id: mug_04_white
+    object_id: mug_04
+    category: mug
+    split: test
+    scene: white_booth
+    start: "2026-08-21T10:50:25"
+    end: "2026-08-21T10:51:22"
+    expected_count: 26
+
+  - capture_id: screwdriver_01_white
+    object_id: screwdriver_01
+    category: screwdriver
+    split: train
+    scene: white_booth
+    start: "2026-08-21T10:51:30"
+    end: "2026-08-21T10:52:09"
+    expected_count: 16
+
+  - capture_id: scissors_01_white
+    object_id: scissors_01
+    category: scissors
+    split: train
+    scene: white_booth
+    start: "2026-08-21T10:52:15"
+    end: "2026-08-21T10:53:01"
+    expected_count: 20
+
+  - capture_id: scissors_01_desk
+    object_id: scissors_01
+    category: scissors
+    split: train
+    scene: office_desk
+    start: "2026-08-21T11:01:20"
+    end: "2026-08-21T11:02:03"
+    expected_count: 22
+
+  - capture_id: screwdriver_01_desk
+    object_id: screwdriver_01
+    category: screwdriver
+    split: train
+    scene: office_desk
+    start: "2026-08-21T11:02:08"
+    end: "2026-08-21T11:02:49"
+    expected_count: 23
+
+  - capture_id: mug_04_desk
+    object_id: mug_04
+    category: mug
+    split: test
+    scene: office_desk
+    start: "2026-08-21T11:02:53"
+    end: "2026-08-21T11:03:34"
+    expected_count: 25
+
